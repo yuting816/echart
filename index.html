@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>echart显示自定义地图-上海</title>
+    <!-- <script src="node_modules/jquery/dist/jquery.min.js"></script> -->
+    <!-- 引入上海地图数据 -->
+    <script src="js/shanghai.js"></script>
+    <!-- 引入OD数据 -->
+    <script src="js/1600609_MOD.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <!-- 载入自定义地图+基础涟漪样式 -->
+    <script src="js/SHbaseMap.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        .left {
+            float: left;
+            width: 80%;
+            height: 650px
+        }
+
+        .right {
+            float: left;
+            width: 100px;
+            height: 650px;
+            background-color: #020933;
+        }
+
+        li {
+            list-style: none;
+            padding-top: 10px;
+        }
+
+        button {
+            width: 80px;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="left" id="main"></div>
+    <div class="right">
+        <ul>
+            <li>
+                <button id="huangpu">黄埔区</button>
+            </li>
+            <li>
+                <button id="xuhui">徐汇区</button>
+            </li>
+            <li>
+                <button id="changning">长宁区</button>
+            </li>
+            <li>
+                <button id="jingan">静安区</button>
+            </li>
+            <li>
+                <button id="putuo">普陀区</button>
+            </li>
+            <li>
+                <button id="hongkou">虹口区</button>
+            </li>
+            <li>
+                <button id="yangpu">杨浦区</button>
+            </li>
+            <li>
+                <button id="minhang">闵行区</button>
+            </li>
+            <li>
+                <button id="baoshan">宝山区</button>
+            </li>
+            <li>
+                <button id="jiading">嘉定区</button>
+            </li>
+            <li>
+                <button id="pudong">浦东新区</button>
+            </li>
+            <li>
+                <button id="jinshan">金山区</button>
+            </li>
+            <li>
+                <button id="songjiang">松江区</button>
+            </li>
+            <li>
+                <button id="qingpu">青浦区</button>
+            </li>
+            <li>
+                <button id="fengxian">奉贤区</button>
+            </li>
+            <li>
+                <button id="chongming">崇明区</button>
+            </li>
+        </ul>
+    </div>
+    <script>
+        // 初始化echart对象
+        let myChart = echarts.init(document.getElementById('main'));
+        // 准备行政区分类数据
+        const districtPoint = {
+            huangpu: "310101",
+            xuhui: "310104",
+            changning: "310105",
+            jingan: "310106",
+            putuo: "310107",
+            hongkou: "310109",
+            yangpu: "310110",
+            minhang: "310112",
+            baoshan: "310113",
+            jiading: "310114",
+            pudong: "310115",
+            jinshan: "310116",
+            songjiang: "310117",
+            qingpu: "310118",
+            fengxian: "310120",
+            chongming: "310151"
+        };
+        let ODbyDistrict = {
+            "huangpu": [],
+            "xuhui": [],
+            "changning": [],
+            "jingan": [],
+            "putuo": [],
+            "hongkou": [],
+            "yangpu": [],
+            "minhang": [],
+            "baoshan": [],
+            "jiading": [],
+            "pudong": [],
+            "jinshan": [],
+            "songjiang": [],
+            "qingpu": [],
+            "fengxian": [],
+            "chongming": []
+        };
+        // 加载基本的series组件
+        let series = loadBaseSeries()
+        // 加载基本地图组件
+        const geo = loadBaseMap(MAPdata);
+        // 视觉映射组件
+        let visualMap = {
+            // 分段型
+            type: "piecewise",
+            orient: 'vertical',
+            itemWidth: 25,
+            itemHeight: 15,
+            showLabel: true,
+            textStyle: {
+                color: '#FFFAFA'
+            },
+            // 距离上，左边框边距
+            top: "10%",
+            left: "6%",
+            // 配置分段范围和颜色
+            pieces: [
+                {
+                    min: 0,
+                    max: 58,
+                    color: "rgba(127, 255, 212, 0.3)"
+                },
+                {
+                    min: 59,
+                    max: 660,
+                    color: "rgba(0, 255, 0, 0.8)"
+                },
+                {
+                    min: 661,
+                    max: 2827,
+                    color: "rgba(255, 187, 255, 1)"
+                },
+                {
+                    min: 2828,
+                    max: 16956,
+                    color: "rgba(255, 0, 0, 1)"
+                }
+            ]
+        }
+        // 设置配置项
+        let option = {
+            // 整个页面背景颜色
+            backgroundColor: '#020933',
+            //页面标题
+            title: {
+                top: 20,
+                text: '2020年6月9日上午7-9点 上海行政区划车流量',
+                x: 'center',
+                textStyle: {
+                    color: '#AFEEEE'
+                }
+            },
+            geo: geo,
+            series: series,
+            visualMap: visualMap
+        };
+        // 取得分行政区OD数据
+        for (let i = 0; i < ODdata.length; i++) {
+            let OD = ODdata[i]
+            for (let j in districtPoint) {
+                // 首尾点任一一个出现该行政区，则分类到该行政区对象中
+                let result = districtPoint[j] === OD["fDistrict"] || districtPoint[j] === OD["tDistrict"];
+                if (result === true) {
+                    ODbyDistrict[j].push(OD)
+                }
+            }
+        }
+        console.log(ODbyDistrict);
+
+        // 转化数据为echart格式
+        function convertData(data) {
+            let carlines = [];
+            for (let i = 0; i < data.length; i++) {
+                let OD = data[i];
+                let [flong, flat, tlong, tlat] = [OD["fLong"], OD["fLat"], OD["tLong"], OD["tLat"]]
+                let points = [[flong, flat], [tlong, tlat]]
+                let result = {
+                    coords: points,
+                    lineStyle: {
+                        normal: {
+                            color: getColor(OD["weight"]),
+                        }
+                    },
+                    // 使用自定义颜色，不使用自动定义颜色
+                    visualMap: false
+                }
+                carlines.push(result)
+            }
+            return carlines;
+        }
+        // 获取对应权重的颜色
+        function getColor(weight) {
+            if (weight > 2827) {
+                // 红色
+                return "rgba(255, 0, 0, 1)"
+            } else if (weight > 660) {
+                // 浅紫色
+                return "rgba(255, 187, 255, 1)"
+            } else if (weight > 58) {
+                // 绿色
+                return "rgba(0, 255, 0, 0.8)"
+            } else if (weight >= 1) {
+                // 蓝色
+                return "rgba(127, 255, 212, 0.3)"
+            }
+        };
+
+        // 准备好飞线，固定线series组件，但未填入数据
+        series.push(
+            {
+                // 飞线样式
+                // name: "carFlow",
+                type: 'lines',
+                data: convertData(ODdata),
+                lineStyle: {
+                    normal: {
+                        width: 0,
+                        curveness: 0.5,
+                        color: '#fff'
+                    }
+                },
+                effect: {
+                    // 动点速度
+                    constantSpeed: 40,
+                    show: true,
+                    // 拖尾效果长度
+                    trailLength: 0.6,
+                    // 动点标识大小
+                    symbolSize: 2,
+                    // 线条颜色在data中指定
+                    // color: '#c23531'
+                },
+                zlevel: 1
+            },
+            {
+                // 固定线样式
+                type: 'lines',
+                data: convertData(ODdata),
+                zlevel: 2,
+                lineStyle: {
+                    normal: {
+                        width: 2,
+                        opacity: 0.4,
+                        curveness: 0.5, //弧线角度
+                    }
+                },
+            }
+        )
+        // 给每个按钮绑定点击事件，被点击时series组件填入相应的数据
+        let btns = document.getElementsByTagName("button")
+        for (let i = 0; i < btns.length; i++) {
+            // console.log(btns[0].id);
+            let district = btns[i];
+            let districtName = btns[i].id
+            district.addEventListener("click", function () {
+                // console.log(districtName); 
+                // 点击触发事件 
+                console.log(ODbyDistrict[districtName]);
+                series[1].data = convertData(ODbyDistrict[districtName]);
+                series[2].data = convertData(ODbyDistrict[districtName]);
+                myChart.setOption(option);
+            })
+        }
+        myChart.setOption(option); 
+    </script>
+
+</body>
+
+</html>
